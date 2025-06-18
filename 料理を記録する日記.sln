@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "料理を記録する日記", "料理を記録する日記.csproj", "{B0108858-C131-4690-9673-4CB0410DD617}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0108858-C131-4690-9673-4CB0410DD617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0108858-C131-4690-9673-4CB0410DD617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0108858-C131-4690-9673-4CB0410DD617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0108858-C131-4690-9673-4CB0410DD617}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AB1DF17A-5D55-4EDE-BEE3-E9E168FA40E5}
+	EndGlobalSection
+EndGlobal
