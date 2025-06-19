@@ -161,26 +161,26 @@
             // ハッシュタグ挿入ToolStripMenuItem
             // 
             ハッシュタグ挿入ToolStripMenuItem.Name = "ハッシュタグ挿入ToolStripMenuItem";
-            ハッシュタグ挿入ToolStripMenuItem.Size = new Size(151, 22);
+            ハッシュタグ挿入ToolStripMenuItem.Size = new Size(180, 22);
             ハッシュタグ挿入ToolStripMenuItem.Text = "ハッシュタグロゴ";
             ハッシュタグ挿入ToolStripMenuItem.Click += ハッシュタグ挿入ToolStripMenuItem_Click;
             // 
             // テキスト挿入ToolStripMenuItem
             // 
             テキスト挿入ToolStripMenuItem.Name = "テキスト挿入ToolStripMenuItem";
-            テキスト挿入ToolStripMenuItem.Size = new Size(151, 22);
+            テキスト挿入ToolStripMenuItem.Size = new Size(180, 22);
             テキスト挿入ToolStripMenuItem.Text = "テキスト";
             // 
             // スタンプアイコンToolStripMenuItem
             // 
             スタンプアイコンToolStripMenuItem.Name = "スタンプアイコンToolStripMenuItem";
-            スタンプアイコンToolStripMenuItem.Size = new Size(151, 22);
+            スタンプアイコンToolStripMenuItem.Size = new Size(180, 22);
             スタンプアイコンToolStripMenuItem.Text = "スタンプ・アイコン";
             // 
             // 額縁ToolStripMenuItem
             // 
             額縁ToolStripMenuItem.Name = "額縁ToolStripMenuItem";
-            額縁ToolStripMenuItem.Size = new Size(151, 22);
+            額縁ToolStripMenuItem.Size = new Size(180, 22);
             額縁ToolStripMenuItem.Text = "額縁";
             // 
             // 色調補正ToolStripMenuItem
@@ -248,7 +248,7 @@
             // git公式ドキュメントToolStripMenuItem
             // 
             git公式ドキュメントToolStripMenuItem.Name = "git公式ドキュメントToolStripMenuItem";
-            git公式ドキュメントToolStripMenuItem.Size = new Size(163, 22);
+            git公式ドキュメントToolStripMenuItem.Size = new Size(180, 22);
             git公式ドキュメントToolStripMenuItem.Text = "Git公式ドキュメント";
             // 
             // Form1
