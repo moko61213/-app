@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Text.Json;
 using System.Windows.Forms;
 
 namespace 料理を記録する日記
@@ -9,19 +11,16 @@ namespace 料理を記録する日記
     {
         private DateTime currentDate = DateTime.Today;
         private HomeForm homeForm;
-        private Dictionary<DateTime, List<(PictureBox pic, ComboBox status)>> photoMap = new();
+
+        // ラジオボタン２つも管理するため、Tupleを変更
+        private Dictionary<DateTime, List<(PictureBox pic, RadioButton yes, RadioButton no)>> photoMap = new();
 
         public Form2(HomeForm homeForm)
         {
             InitializeComponent();
-
             this.homeForm = homeForm;
             this.Text = "料理記録カレンダー";
-
-            // フォーム起動時に最大化
             this.WindowState = FormWindowState.Maximized;
-
-            // Loadイベントに初期化と描画処理を登録
             this.Load += Form2_Load;
         }
 
@@ -33,10 +32,6 @@ namespace 料理を記録する日記
 
         private void InitUI()
         {
-            // month はデザイナで追加済みラベルなのでここでの生成は不要
-
-            // calendar はデザイナで追加済みパネル
-            // サイズ調整はここで行う
             int topOffset = month.Bottom + 10;
             calendar.Location = new Point(10, topOffset);
             calendar.Size = new Size(this.ClientSize.Width - 20, this.ClientSize.Height - topOffset - 10);
@@ -57,7 +52,9 @@ namespace 料理を記録する日記
             {
                 RowCount = 6,
                 ColumnCount = 7,
-                Dock = DockStyle.Fill,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Dock = DockStyle.Top,
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
             };
 
@@ -65,7 +62,7 @@ namespace 料理を記録する日記
                 table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 7));
 
             for (int r = 0; r < 6; r++)
-                table.RowStyles.Add(new RowStyle(SizeType.Absolute, 230));  // 行の高さ固定
+                table.RowStyles.Add(new RowStyle(SizeType.Absolute, 230));
 
             int row = 0;
             for (int day = 1; day <= daysInMonth; day++)
@@ -76,6 +73,18 @@ namespace 料理を記録する日記
                 DateTime current = new DateTime(date.Year, date.Month, day);
                 Panel cell = CreateDayCell(current);
                 table.Controls.Add(cell, col, row);
+
+                // 既に登録済みの写真があれば再表示する
+                if (photoMap.ContainsKey(current))
+                {
+                    foreach (var (pic, yes, no) in photoMap[current])
+                    {
+                        cell.Controls.Add(pic);
+                        cell.Controls.Add(yes);
+                        cell.Controls.Add(no);
+                    }
+                    RepositionControls(current, cell);
+                }
             }
 
             calendar.Controls.Add(table);
@@ -88,14 +97,17 @@ namespace 料理を記録する日記
                 Width = 140,
                 Height = 220,
                 Margin = new Padding(2),
-                AutoScroll = false,
+                AutoScroll = true,
+                BackColor = Color.WhiteSmoke,
+                BorderStyle = BorderStyle.FixedSingle
             };
 
             var label = new Label()
             {
                 Text = day.Day.ToString(),
-                Dock = DockStyle.Top,
-                Height = 20,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(5, 5),
+                Size = new Size(40, 20)
             };
             panel.Controls.Add(label);
 
@@ -103,7 +115,8 @@ namespace 料理を記録する日記
             {
                 Text = "+",
                 Size = new Size(30, 30),
-                Location = new Point(100, 0),
+                Location = new Point(panel.Width - 40, 5),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
             addButton.Click += (s, e) => AddPhoto(day, panel);
             panel.Controls.Add(addButton);
@@ -121,35 +134,104 @@ namespace 料理を記録する日記
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     if (!photoMap.ContainsKey(day))
-                        photoMap[day] = new List<(PictureBox, ComboBox)>();
+                        photoMap[day] = new List<(PictureBox, RadioButton, RadioButton)>();
 
                     foreach (string file in dialog.FileNames)
                     {
                         if (photoMap[day].Count >= 6) break;
+
+                        RadioButton yes = new RadioButton
+                        {
+                            Text = "〇",
+                            Location = new Point(10, 65 + photoMap[day].Count * 70),
+                            AutoSize = true
+                        };
+
+                        RadioButton no = new RadioButton
+                        {
+                            Text = "×",
+                            Location = new Point(40, 65 + photoMap[day].Count * 70),
+                            AutoSize = true
+                        };
 
                         PictureBox pic = new PictureBox()
                         {
                             Image = Image.FromFile(file),
                             SizeMode = PictureBoxSizeMode.StretchImage,
                             Size = new Size(60, 60),
-                            Margin = new Padding(2),
+                            Location = new Point(10, 30 + photoMap[day].Count * 70),
+                            BorderStyle = BorderStyle.FixedSingle,
+                            Cursor = Cursors.Hand,
+                            Tag = file
                         };
 
-                        ComboBox statusBox = new ComboBox()
+                        // 右クリック削除確認を追加
+                        pic.MouseDown += (s, e) =>
                         {
-                            Width = 60,
-                            DropDownStyle = ComboBoxStyle.DropDownList,
+                            if (e.Button == MouseButtons.Right)
+                            {
+                                var result = MessageBox.Show("この写真を削除しますか？", "削除確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                                if (result == DialogResult.Yes)
+                                {
+                                    container.Controls.Remove(pic);
+                                    container.Controls.Remove(yes);
+                                    container.Controls.Remove(no);
+                                    photoMap[day].RemoveAll(x => x.pic == pic);
+                                    pic.Dispose();
+                                    yes.Dispose();
+                                    no.Dispose();
+
+                                    RepositionControls(day, container);
+                                }
+                            }
                         };
-                        statusBox.Items.AddRange(new string[] { "〇 完食", "× 残した" });
-                        statusBox.SelectedIndex = 0;
 
                         container.Controls.Add(pic);
-                        container.Controls.Add(statusBox);
+                        container.Controls.Add(yes);
+                        container.Controls.Add(no);
 
-                        photoMap[day].Add((pic, statusBox));
+                        photoMap[day].Add((pic, yes, no));
                     }
                 }
             }
+        }
+
+        private void RepositionControls(DateTime day, Panel container)
+        {
+            if (!photoMap.ContainsKey(day)) return;
+
+            for (int i = 0; i < photoMap[day].Count; i++)
+            {
+                var (pic, yes, no) = photoMap[day][i];
+
+                pic.Location = new Point(10, 30 + i * 70);
+                yes.Location = new Point(10, 65 + i * 70);
+                no.Location = new Point(40, 65 + i * 70);
+            }
+        }
+
+        private void SaveDiary(string filepath)
+        {
+            var data = new Dictionary<string, List<(string path, string status)>>();
+
+            foreach (var kvp in photoMap)
+            {
+                var list = new List<(string, string)>();
+                foreach (var item in kvp.Value)
+                {
+                    string status = "";
+                    if (item.yes.Checked) status = "〇";
+                    else if (item.no.Checked) status = "×";
+
+                    string path = item.pic.Tag as string ?? "";
+
+                    list.Add((path, status));
+                }
+                data[kvp.Key.ToString("yyyy-MM-dd")] = list;
+            }
+
+            string json = JsonSerializer.Serialize(data);
+            File.WriteAllText(filepath, json);
         }
 
         private void modoru_click(object sender, EventArgs e)
@@ -157,18 +239,17 @@ namespace 料理を記録する日記
             this.Hide();
             homeForm.Show();
         }
+
         private void prevMonthMenuItem_Click(object sender, EventArgs e)
         {
             currentDate = currentDate.AddMonths(-1);
             DrawCalendar(currentDate);
         }
 
-        // 「次の月」クリック時
         private void nextMonthMenuItem_Click(object sender, EventArgs e)
         {
             currentDate = currentDate.AddMonths(1);
             DrawCalendar(currentDate);
         }
-
     }
 }
